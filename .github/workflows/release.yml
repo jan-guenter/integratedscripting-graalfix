@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  packages: write
 
 jobs:
   release:
@@ -31,6 +32,10 @@ jobs:
           fi
       - name: Verify and build
         run: ./gradlew --no-daemon clean check build
+      - name: Publish Maven package
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: ./gradlew --no-daemon publish
       - name: Create checksums
         run: sha256sum build/libs/integratedscripting_graalfix-*.jar > SHA256SUMS.txt
       - name: Publish GitHub release

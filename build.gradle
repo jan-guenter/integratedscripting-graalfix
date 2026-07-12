@@ -1,6 +1,7 @@
 plugins {
     id 'java-library'
     id 'checkstyle'
+    id 'maven-publish'
     id 'net.neoforged.moddev' version '2.0.140'
 }
 
@@ -11,7 +12,10 @@ base {
     archivesName = mod_id
 }
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(21)
+    withSourcesJar()
+}
 
 neoForge {
     version = '21.1.234'
@@ -54,4 +58,41 @@ tasks.withType(Checkstyle).configureEach {
 
 jar {
     manifest.attributes('MixinConfigs': 'integratedscripting_graalfix.mixins.json')
+}
+
+publishing {
+    publications {
+        mod(MavenPublication) {
+            from components.java
+            artifactId = mod_id
+
+            pom {
+                name = mod_name
+                description = 'Client-side compatibility fix for Integrated Scripting 1.0.22 on GraalVM JDK 21'
+                url = 'https://github.com/jan-guenter/integratedscripting-graalfix'
+                licenses {
+                    license {
+                        name = 'MIT License'
+                        url = 'https://opensource.org/license/mit'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:https://github.com/jan-guenter/integratedscripting-graalfix.git'
+                    developerConnection = 'scm:git:ssh://git@github.com/jan-guenter/integratedscripting-graalfix.git'
+                    url = 'https://github.com/jan-guenter/integratedscripting-graalfix'
+                }
+            }
+        }
+    }
+
+    repositories {
+        maven {
+            name = 'GitHubPackages'
+            url = uri('https://maven.pkg.github.com/jan-guenter/integratedscripting-graalfix')
+            credentials {
+                username = System.getenv('GITHUB_ACTOR')
+                password = System.getenv('GITHUB_TOKEN')
+            }
+        }
+    }
 }
