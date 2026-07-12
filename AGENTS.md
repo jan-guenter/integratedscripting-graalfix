@@ -52,10 +52,14 @@ See `TECHNICAL_REPORT.md` for bytecode offsets and the two observed failures.
 
 ## Releases
 
-Version tags matching `v*` trigger `.github/workflows/release.yml`. The workflow
-runs checks, builds the JAR, creates SHA-256 checksums, and publishes both as a
-GitHub release. Update `mod_version` in `gradle.properties`, documentation, and
-compatibility ranges intentionally before tagging.
+Version tags matching `v*` trigger `.github/workflows/release.yml`. The tag must
+exactly equal `v` followed by `mod_version`. The workflow runs checks, builds
+the JAR, creates SHA-256 checksums, and publishes both as a GitHub release.
+
+Every pull request must increase `mod_version` above the value on its target
+branch. The required `Version increment` check enforces this policy and leaves
+an explanatory PR comment when it fails. Update the version, documentation,
+and compatibility ranges intentionally before merging and tagging.
 
 ## Evidence from the first successful test
 

@@ -13,14 +13,22 @@ jobs:
     name: Build and publish release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Set up GraalVM Community 21.0.2
         uses: graalvm/setup-graalvm@v1
         with:
           java-version: '21.0.2'
           distribution: graalvm-community
           github-token: ${{ secrets.GITHUB_TOKEN }}
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v6
+      - name: Verify tag matches mod version
+        shell: bash
+        run: |
+          mod_version="$(sed -n 's/^mod_version=//p' gradle.properties)"
+          if [[ "${GITHUB_REF_NAME}" != "v${mod_version}" ]]; then
+            echo "Tag ${GITHUB_REF_NAME} does not match mod_version=${mod_version}." >&2
+            exit 1
+          fi
       - name: Verify and build
         run: ./gradlew --no-daemon clean check build
       - name: Create checksums

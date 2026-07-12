@@ -13,32 +13,32 @@ jobs:
     name: Validate Gradle wrapper
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: gradle/actions/wrapper-validation@v4
+      - uses: actions/checkout@v7
+      - uses: gradle/actions/wrapper-validation@v6
 
   build:
     name: Build, lint, and test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Set up GraalVM Community 21.0.2
         uses: graalvm/setup-graalvm@v1
         with:
           java-version: '21.0.2'
           distribution: graalvm-community
           github-token: ${{ secrets.GITHUB_TOKEN }}
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v6
       - name: Check and build
         run: ./gradlew --no-daemon clean check build
       - name: Upload reports
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: verification-reports
           path: build/reports/
           if-no-files-found: ignore
       - name: Upload mod JAR
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: integratedscripting-graalfix
           path: build/libs/integratedscripting_graalfix-*.jar
