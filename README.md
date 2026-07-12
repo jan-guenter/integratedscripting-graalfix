@@ -31,13 +31,47 @@ network protocol changes, and it is not required on a server.
 
 ## Installation
 
-1. Download the JAR from the repository's Releases page.
+1. Download the JAR from the
+   [latest GitHub Release](https://github.com/jan-guenter/integratedscripting-graalfix/releases/latest).
 2. Place the JAR in the client's `mods` directory alongside Integrated
    Scripting.
 3. Start the game normally.
 
 Keep the original Integrated Scripting JAR installed. To uninstall the fix,
 remove only the `integratedscripting_graalfix` JAR.
+
+## Precompiled artifacts
+
+Ready-to-install builds are published in two places:
+
+- [GitHub Releases](https://github.com/jan-guenter/integratedscripting-graalfix/releases)
+  provides the mod JAR and a `SHA256SUMS.txt` file for each tagged release.
+- [GitHub Packages](https://github.com/jan-guenter/integratedscripting-graalfix/packages)
+  provides the same project as a Maven package for automated consumers.
+
+Maven coordinates:
+
+```text
+io.github.jan-guenter:integratedscripting_graalfix:1.0.1
+```
+
+Gradle repository configuration:
+
+```groovy
+repositories {
+    maven {
+        url = uri('https://maven.pkg.github.com/jan-guenter/integratedscripting-graalfix')
+        credentials {
+            username = providers.gradleProperty('gpr.user').orNull
+            password = providers.gradleProperty('gpr.key').orNull
+        }
+    }
+}
+```
+
+GitHub Packages may require GitHub credentials with `read:packages` permission,
+including when it is consumed from another build. End users should normally use
+the Release JAR instead.
 
 When the patch activates, the client log contains:
 
