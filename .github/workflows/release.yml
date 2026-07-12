@@ -20,7 +20,7 @@ jobs:
           java-version: '21.0.2'
           distribution: graalvm-community
           github-token: ${{ secrets.GITHUB_TOKEN }}
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v6
       - name: Verify and build
         run: ./gradlew --no-daemon clean check build
       - name: Create checksums
