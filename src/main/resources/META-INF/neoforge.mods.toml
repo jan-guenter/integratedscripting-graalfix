@@ -7,13 +7,14 @@ modId = "${mod_id}"
 version = "${mod_version}"
 displayName = "${mod_name}"
 description = '''
-Client-only compatibility patch for Integrated Scripting 1.0.22 on GraalVM JDK 21.
+Client-only transition helper for Integrated Scripting 1.0.24 after its upstream GraalVM fix.
+This release intentionally applies no Mixin.
 '''
 
 [[dependencies.${mod_id}]]
 modId = "neoforge"
 type = "required"
-versionRange = "[21.1.234,22)"
+versionRange = "[21.1.248,21.2)"
 ordering = "NONE"
 side = "CLIENT"
 
@@ -27,6 +28,6 @@ side = "CLIENT"
 [[dependencies.${mod_id}]]
 modId = "integratedscripting"
 type = "required"
-versionRange = "[1.0.22]"
+versionRange = "[1.0.24]"
 ordering = "AFTER"
 side = "CLIENT"

@@ -18,7 +18,7 @@ java {
 }
 
 neoForge {
-    version = '21.1.234'
+    version = '21.1.248'
 
     mods {
         integratedscripting_graalfix {
@@ -44,6 +44,11 @@ tasks.withType(JavaCompile).configureEach {
     options.release = 21
 }
 
+tasks.withType(AbstractArchiveTask).configureEach {
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
+}
+
 checkstyle {
     toolVersion = '10.18.2'
     configFile = file('config/checkstyle/checkstyle.xml')
@@ -56,10 +61,6 @@ tasks.withType(Checkstyle).configureEach {
     }
 }
 
-jar {
-    manifest.attributes('MixinConfigs': 'integratedscripting_graalfix.mixins.json')
-}
-
 publishing {
     publications {
         mod(MavenPublication) {
@@ -68,7 +69,7 @@ publishing {
 
             pom {
                 name = mod_name
-                description = 'Client-side compatibility fix for Integrated Scripting 1.0.22 on GraalVM JDK 21'
+                description = 'Transition helper for Integrated Scripting 1.0.24 after its upstream GraalVM fix'
                 url = 'https://github.com/jan-guenter/integratedscripting-graalfix'
                 licenses {
                     license {
