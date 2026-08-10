@@ -1,82 +1,61 @@
 # Integrated Scripting GraalVM Fix
 
-A client-side compatibility mod for Minecraft 1.21.1, NeoForge 21.1.x, and
-Integrated Scripting 1.0.22.
+A client-side transition helper for Minecraft 1.21.1, NeoForge 21.1.248, and
+Integrated Scripting 1.0.24 as shipped by All the Mons 1.2.0.
 
-Integrated Scripting bundles and relocates a Truffle/GraalJS runtime. When the
-game runs on GraalVM Community JDK 21, that embedded runtime can incorrectly
-select native or host Graal compiler integration whose package names and native
-bindings do not match the relocated classes. Opening the Scripting Terminal can
-then crash the client.
+Integrated Scripting 1.0.22 bundled a relocated Truffle/GraalJS runtime that
+could select native or host Graal compiler integration incompatible with its
+relocated package names. Releases 1.0.0 and 1.0.1 of this project intercepted
+that runtime selection and forced Integrated Scripting's embedded interpreter.
 
-This mod intercepts initialization of Integrated Scripting's relocated Truffle
-runtime and selects the interpreter implementation already bundled with the
-mod. The patch is deliberately limited to Integrated Scripting: it does not
-change JVM options, disable JVMCI, or affect Graal compilation for Minecraft or
-other mods.
+Integrated Scripting 1.0.24 replaces the relocated runtime with upstream
+Graal/Truffle 25.0.1 JARs loaded through a fallback classloader. The old Mixin
+target no longer exists, and applying or retargeting that Mixin would be
+incorrect. Version 1.1.0 therefore applies no Mixin. It exists so clients can
+upgrade the old helper alongside All the Mons without retaining an inapplicable
+patch, and it logs that the helper can now be removed.
 
 ## Compatibility
 
+- All the Mons 1.2.0
 - Minecraft 1.21.1
-- NeoForge 21.1.x
-- Integrated Scripting 1.0.22
+- NeoForge 21.1.248 through 21.1.x
+- Integrated Scripting 1.0.24 (audited pack build 424)
 - Java 21
 
-The compatibility range is intentionally narrow because the mixin targets
-bytecode from this exact Integrated Scripting release. Other versions must be
-inspected before the range can safely be expanded.
-
-The mod is client-side only. It adds no game content, registries, packets, or
+The mod remains client-side only. It adds no content, registries, packets, or
 network protocol changes, and it is not required on a server.
 
-## Installation
+NeoForge's dependency range can enforce `1.0.24`, but it cannot distinguish
+provider build numbers that expose the same mod version. The exact audited All
+the Mons artifact is build 424; other 1.0.24 builds are not covered by the
+bytecode audit.
 
-1. Download the JAR from the
-   [latest GitHub Release](https://github.com/jan-guenter/integratedscripting-graalfix/releases/latest).
-2. Place the JAR in the client's `mods` directory alongside Integrated
-   Scripting.
-3. Start the game normally.
+## Upgrading from 1.0.1
 
-Keep the original Integrated Scripting JAR installed. To uninstall the fix,
-remove only the `integratedscripting_graalfix` JAR.
-
-## Precompiled artifacts
-
-Ready-to-install builds are published in two places:
-
-- [GitHub Releases](https://github.com/jan-guenter/integratedscripting-graalfix/releases)
-  provides the mod JAR and a `SHA256SUMS.txt` file for each tagged release.
-- [GitHub Packages](https://github.com/jan-guenter/integratedscripting-graalfix/packages)
-  provides the same project as a Maven package for automated consumers.
-
-Maven coordinates:
+The recommended action for All the Mons 1.2.0 is to remove
+`integratedscripting_graalfix` from the client. If an automated mod-management
+workflow expects an updated artifact first, install version 1.1.0; it performs
+no patch and logs:
 
 ```text
-io.github.jan-guenter:integratedscripting_graalfix:1.0.1
+Inactive for Integrated Scripting 1.0.24: its upstream fallback-classloader rewrite removed the relocated Truffle target, so no compatibility patch is applied; this transition mod can be removed
 ```
 
-Gradle repository configuration:
+Do not use 1.1.0 with Integrated Scripting 1.0.22. Keep version 1.0.1 only for
+the older, exact 1.0.22 runtime it was built and tested against.
 
-```groovy
-repositories {
-    maven {
-        url = uri('https://maven.pkg.github.com/jan-guenter/integratedscripting-graalfix')
-        credentials {
-            username = providers.gradleProperty('gpr.user').orNull
-            password = providers.gradleProperty('gpr.key').orNull
-        }
-    }
-}
-```
+## Artifacts
 
-GitHub Packages may require GitHub credentials with `read:packages` permission,
-including when it is consumed from another build. End users should normally use
-the Release JAR instead.
+Tagged releases are published through
+[GitHub Releases](https://github.com/jan-guenter/integratedscripting-graalfix/releases)
+with SHA-256 checksums and through
+[GitHub Packages](https://github.com/jan-guenter/integratedscripting-graalfix/packages).
 
-When the patch activates, the client log contains:
+Maven coordinates for this source version are:
 
 ```text
-Active: using Integrated Scripting's embedded interpreter runtime; Minecraft JVMCI is unchanged
+io.github.jan-guenter:integratedscripting_graalfix:1.1.0
 ```
 
 ## Building
@@ -86,42 +65,20 @@ Requirements:
 - A Java 21 JDK
 - Internet access for the first Gradle dependency download
 
-Build with the included Gradle wrapper:
+Build with:
 
 ```shell
-./gradlew clean check build
+./gradlew --no-daemon clean check build
 ```
 
-On Windows:
+The built JAR is written to `build/libs/`. The final artifact must contain only
+this project's entry-point class and metadata; it must not contain a Mixin
+configuration, Integrated Scripting classes, Graal/Truffle classes, or nested
+JARs.
 
-```powershell
-.\gradlew.bat clean check build
-```
-
-The built mod JAR is written to `build/libs/`.
-
-`check` runs compilation, tests, and Checkstyle. Continuous integration also
-validates the Gradle wrapper and uploads the built JAR as a workflow artifact.
-
-## How it works
-
-The required mixin injects at the beginning of the relocated
-`HotSpotTruffleRuntimeAccess.createRuntime()` method. It returns Integrated
-Scripting's embedded `DefaultTruffleRuntime` before that runtime can initialize
-JVMCI, enter relocated libgraal native bindings, or discover an incompatible
-host compiler module.
-
-The injection is marked as required, so an incompatible target change causes a
-clear startup failure instead of silently leaving the crash unpatched. See
-[`TECHNICAL_REPORT.md`](TECHNICAL_REPORT.md) for the bytecode analysis and
-implementation rationale.
-
-## Performance considerations
-
-Scripts evaluated by Integrated Scripting run through its interpreter rather
-than its optimized Truffle compiler. Script-heavy networks may therefore
-evaluate more slowly. GraalVM optimization of Minecraft and all unrelated code
-remains enabled.
+See [`TECHNICAL_REPORT.md`](TECHNICAL_REPORT.md) for the exact All the Mons
+1.2.0 artifact identities, bytecode audit, source correlation, and remaining
+runtime-validation boundary.
 
 ## License
 
